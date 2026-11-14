@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Boza
+GenericName=Copia y clonado de unidades
+Comment=Clona y copia datos entre dos unidades, rápida y segura (verificación por hash)
+Exec=boza
+Icon=boza
+Terminal=false
+Categories=Utility;Archiving;
+Keywords=copia;clonar;respaldo;backup;disco;unidad;verificar;
+StartupNotify=true

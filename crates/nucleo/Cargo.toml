@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: LicenseRef-Xiliux-Propietario
+[package]
+name = "boza-nucleo"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Motor de copia de boza: copia rápida (reflink CoW con reserva) y segura (verificación por hash) de un árbol entre dos unidades"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = "1"
+# Recorrido del árbol de origen.
+walkdir = "2"
+# Hash rápido para verificar que el destino es idéntico al origen.
+blake3 = "1"
+# Copia con Copy-on-Write (ioctl FICLONE) cuando origen y destino comparten
+# sistema de archivos; si no, cae a copia normal. Es lo "rápido".
+reflink-copy = "0.1"
+# Preservar la fecha de modificación del origen (fidelidad de la copia).
+filetime = "0.2"
+# Para listar las unidades montadas parseando `lsblk -J` (Linux).
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# En Linux: `syncfs` (durabilidad por lotes), `posix_fadvise` (leer del PLATO) y
+# `major/minor` + `/sys` (perfil mecánico). En Windows esas piezas van con `std`
+# (`sync_all`, `MetadataExt`) o Win32 (abajo).
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+# En Windows: enumerar unidades con letra (GetLogicalDrives / GetDriveTypeW /
+# GetVolumeInformationW / GetDiskFreeSpaceExW). `windows-sys` es la binding oficial
+# de Microsoft; solo entra en la compilación para Windows.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Storage_FileSystem", "Win32_Foundation"] }
+
+[dev-dependencies]
+tempfile = "3"

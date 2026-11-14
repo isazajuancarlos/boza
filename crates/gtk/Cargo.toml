@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: LicenseRef-Xiliux-Propietario
+# Titularidad: Juan Carlos Isaza (directiva 12).
+[package]
+name = "boza-gtk"
+version = "0.1.1"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+# La `description` es la SINOPSIS del .deb (de cara al usuario). La nota de build
+# (necesita libgtk-4-dev para COMPILAR) va en el README/CLAUDE.md, no aquí.
+description = "Copia y clona datos entre dos unidades, rápida y segura (frontal GTK4 de Linux)"
+
+[lints]
+workspace = true
+
+# Empaquetado Debian (cargo-deb). El .deb lleva la GUI (`boza`) y la herramienta
+# `boza-scrub` (vive en crates/nucleo), más el .desktop y el icono. Depende del
+# runtime GTK4 del sistema (no se vendoriza: en Debian es un paquete estándar) —
+# `$auto` resuelve el resto de librerías compartidas leyendo el ELF.
+#
+# El binario `boza-scrub` es de OTRO crate (boza-nucleo), así que cargo-deb no lo
+# compila al empaquetar boza-gtk: se construye antes (`cargo build --release -p
+# boza-nucleo --bin boza-scrub`) y se empaqueta con `cargo deb -p boza-gtk --no-build`
+# (ver README «Empaquetar»).
+[package.metadata.deb]
+name = "boza"
+maintainer = "Juan Carlos Isaza <isazajuancarlos@gmail.com>"
+copyright = "2026, Juan Carlos Isaza. LicenseRef-Xiliux-Propietario."
+license-file = ["../../NOTICE", "0"]
+extended-description = """\
+Boza clona y copia datos entre dos unidades de forma rápida y segura: \
+verificación por hash blake3 leída del plato, copia atómica (temporal + rename), \
+durabilidad por lotes (syncfs) y nunca toca el origen. Copia carpetas o archivos \
+sueltos. Incluye boza-scrub, detector de bit-rot por manifiesto."""
+section = "utils"
+priority = "optional"
+depends = "$auto, libgtk-4-1"
+assets = [
+    ["../../target/release/boza", "usr/bin/", "755"],
+    ["../../target/release/boza-scrub", "usr/bin/", "755"],
+    ["dist/boza.desktop", "usr/share/applications/", "644"],
+    ["dist/boza.png", "usr/share/icons/hicolor/256x256/apps/boza.png", "644"],
+    ["../../README.md", "usr/share/doc/boza/README.md", "644"],
+]
+
+# Empaquetado RPM (openSUSE / Fedora) — GEMELO del bloque .deb de arriba, para la
+# máquina de desarrollo Fedora (2026-10-12). Se construye con `cargo generate-rpm`
+# (cargo install cargo-generate-rpm), tomando los binarios de `target/release`:
+# el binario DEBE ser release. `boza-scrub` es de otro crate (boza-nucleo), así
+# que se construyen los dos ANTES (ver README «Empaquetar»).
+#
+# `name = "boza"` para que el paquete se llame como el .deb y no «boza-gtk». No se
+# declara `requires` del runtime GTK4: generate-rpm lo AUTODETECTA leyendo el ELF
+# (libgtk-4.so.1, libglib-2.0…), igual que `$auto` en el .deb; `dnf install ./…`
+# los resuelve. Las rutas de `source` son relativas al Cargo.toml del crate, como
+# en el .deb, así que se corre desde `crates/gtk/`.
+[package.metadata.generate-rpm]
+name = "boza"
+summary = "Copia y clona datos entre dos unidades, rapida y segura (frontal GTK4 de Linux)"
+assets = [
+    { source = "../../target/release/boza", dest = "/usr/bin/boza", mode = "755" },
+    { source = "../../target/release/boza-scrub", dest = "/usr/bin/boza-scrub", mode = "755" },
+    { source = "dist/boza.desktop", dest = "/usr/share/applications/boza.desktop", mode = "644" },
+    { source = "dist/boza.png", dest = "/usr/share/icons/hicolor/256x256/apps/boza.png", mode = "644" },
+    { source = "../../README.md", dest = "/usr/share/doc/boza/README.md", mode = "644" },
+]
+
+[[bin]]
+name = "boza"
+path = "src/main.rs"
+
+[dependencies]
+boza-nucleo = { path = "../nucleo" }
+# v4_10: FileDialog (el selector moderno de carpetas) exige GTK >= 4.10. El
+# sistema tiene 4.18+, así que se activa.
+gtk = { package = "gtk4", version = "0.9", features = ["v4_10"] }
+# Canal para llevar el progreso del hilo de copia al hilo de la interfaz.
+async-channel = "2"

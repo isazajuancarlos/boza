@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: LicenseRef-Xiliux-Propietario
+# Titularidad: Juan Carlos Isaza (directiva 12).
+[package]
+name = "boza-egui"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Interfaz de escritorio de boza en egui: un solo .exe, sin runtime de sistema (reemplaza GTK en Linux y la Win32 nativa). Tema compartido huitaca. Copia entre unidades Windows y discos Linux (ext4/btrfs/xfs) montados por cuchavira."
+
+[lints]
+workspace = true
+
+# EL binario de la app es `boza` (igual que boza-gtk y boza-win: son frontales del
+# mismo producto, excluyentes por plataforma). Se construye con `-p boza-egui`.
+[[bin]]
+name = "boza"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+boza-nucleo = { path = "../nucleo" }
+# Orquesta el montaje RW efímero de discos Linux por cuchavira (D1: RAII).
+boza-montaje = { path = "../montaje" }
+# SDK de cuchavira: vive en su repo (D36: contrato y parser juntos).
+cuchavira-cliente = { path = "../../../cuchavira/cliente" }
+# Frontal egui: un solo .exe, sin runtime que empaquetar. La versión de egui la
+# FIJA huitaca (una sola para todas las apps de escritorio, como chuspa).
+eframe = "0.33"
+huitaca = { path = "../../../huitaca" }
+# Diálogo de carpeta NATIVO (elegir origen/destino por botón, no tecleando ruta).
+rfd = "0.15"
+
+[target.'cfg(windows)'.build-dependencies]
+# Embebe el icono en el .exe (Explorador, barra de tareas, UAC). Fork mantenido de
+# winres; usa windres del toolchain GNU, que ya está instalado.
+winresource = "0.1"

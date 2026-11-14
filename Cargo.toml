@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: LicenseRef-Xiliux-Propietario
+# Titularidad: Juan Carlos Isaza. Xiliux no es persona jurídica (directiva 12).
+#
+# boza (muisca "dos") — aplicación de escritorio para clonar/copiar datos entre DOS
+# unidades, rápida y segura. El motor de copia (crates/nucleo) es Rust puro y
+# verificable; encima van DOS frontales, uno por plataforma (Juan, 2026-10-11):
+# crates/gtk (GTK4 nativo) es el de LINUX y da el .deb; crates/egui (eframe+huitaca,
+# un solo .exe portable) es el de WINDOWS, donde además crates/montaje orquesta el
+# montaje de discos Linux (ext4/btrfs/xfs) vía cuchavira (RW efímero). Ambos frontales
+# comparten el mismo motor (nucleo) y producen un binario llamado `boza`; por eso en
+# Windows se excluye crates/gtk (arrastra el stack C de GTK): ver CLAUDE.md «Compilar».
+[workspace]
+resolver = "2"
+members = ["crates/nucleo", "crates/montaje", "crates/egui", "crates/gtk"]
+
+[workspace.package]
+edition = "2021"
+license = "LicenseRef-Xiliux-Propietario"
+authors = ["Juan Carlos Isaza"]
+
+[workspace.lints.clippy]
+redundant_clone = "deny"
+needless_collect = "deny"
+
+[profile.dev.package."*"]
+opt-level = 3

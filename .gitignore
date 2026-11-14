@@ -1,0 +1,7 @@
+/target
+# cargo generate-rpm corrido desde crates/gtk/ escribe en SU ./target (medido 2026-11-06).
+/crates/gtk/target/
+# Paquetes construidos que se dejan a mano en dist/ (artefactos; dist/windows/ sí se versiona).
+/dist/*.rpm
+/dist/*.deb
+/conversaciones/
